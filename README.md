@@ -1,0 +1,1 @@
+# paradigmas25-g02-lab1
