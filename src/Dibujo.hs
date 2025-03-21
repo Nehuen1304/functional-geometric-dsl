@@ -1,11 +1,14 @@
 module Dibujo where
 
 -- Definir el lenguaje via constructores de tipo
-data Dibujo a = Basica a | Rotar (Dibujo a)| Espejar (Dibujo a) | Rot45 (Dibujo a)
-    | Apilar Float Float (Dibujo a) (Dibujo a)
-    | Juntar Float Float (Dibujo a) (Dibujo a)
-    | Encimar (Dibujo a) (Dibujo a) 
-    deriving(Eq, Show)
+data Dibujo a = Basica a 
+              | Rotar (Dibujo a)
+              | Espejar (Dibujo a) 
+              | Rot45 (Dibujo a)
+              | Apilar Float Float (Dibujo a) (Dibujo a)
+              | Juntar Float Float (Dibujo a) (Dibujo a)
+              | Encimar (Dibujo a) (Dibujo a) 
+              deriving(Eq, Show)
 
 
 -- Composición n-veces de una función con sí misma.
@@ -42,6 +45,7 @@ encimar4 a = (^^^) ((^^^) ((^^^) a (Rotar a )) (Rotar (Rotar a))) (Rotar (Rotar 
 -- Cuadrado con la misma figura rotada i * 90, para i ∈ {0, ..., 3}.
 -- No confundir con encimar4!
 ciclar :: Dibujo a -> Dibujo a
+ciclar :: Dibujo a -> Dibujo a
 ciclar a = cuarteto a (Rotar a) (Rotar(Rotar a)) (Rotar(Rotar(Rotar a)))
 
 -- Transfomar un valor de tipo a como una Basica.
@@ -50,7 +54,14 @@ pureDib   = Basica
 
 -- map para nuestro lenguaje.
 mapDib :: (a -> b) -> Dibujo a -> Dibujo b
-mapDib = undefined
+mapDib f (Basica a) = pureDib (f a)
+mapDib f (Rotar a) = Rotar (mapDib f a)
+mapDib f (Espejar a) = Espejar (mapDib f a)
+mapDib f (Rot45 a) = Rot45 (mapDib f a)
+mapDib f (Apilar i j a b) = Apilar i j (mapDib f a) (mapDib f b)
+mapDib f (Juntar i j a b) = Juntar i j (mapDib f a) (mapDib f b)
+mapDib f (Encimar a b) = Encimar (mapDib f a) (mapDib f b)
+
 
 -- Funcion de fold para Dibujos a
 foldDib :: (a -> b) -> (b -> b) -> (b -> b) -> (b -> b) ->
