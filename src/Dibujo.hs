@@ -45,7 +45,6 @@ encimar4 a = (^^^) ((^^^) ((^^^) a (Rotar a )) (Rotar (Rotar a))) (Rotar (Rotar 
 -- Cuadrado con la misma figura rotada i * 90, para i ∈ {0, ..., 3}.
 -- No confundir con encimar4!
 ciclar :: Dibujo a -> Dibujo a
-ciclar :: Dibujo a -> Dibujo a
 ciclar a = cuarteto a (Rotar a) (Rotar(Rotar a)) (Rotar(Rotar(Rotar a)))
 
 -- Transfomar un valor de tipo a como una Basica.
