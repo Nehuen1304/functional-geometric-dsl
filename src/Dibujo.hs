@@ -69,4 +69,10 @@ foldDib :: (a -> b) -> (b -> b) -> (b -> b) -> (b -> b) ->
        (Float -> Float -> b -> b -> b) ->
        (b -> b -> b) ->
        Dibujo a -> b 
-foldDib = undefined
+foldDib fBasica _ _ _ _ _ _ (Basica a) = fBasica a
+foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar (Rotar a) = fRotar (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar a)
+foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar (Espejar a) = fEspejar (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar a)
+foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar (Rot45 a) = fRot45 (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar a)
+foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar (Apilar i j a b) = fApilar i j (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar a) (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar b)
+foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar (Juntar i j a b) = fJuntar i j (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar a) (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar b)
+foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar (Encimar a b) = fEncimar (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar a) (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar b)
