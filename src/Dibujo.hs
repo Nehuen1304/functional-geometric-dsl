@@ -1,11 +1,14 @@
 module Dibujo where
 
 -- Definir el lenguaje via constructores de tipo
-data Dibujo a = Basica a | Rotar (Dibujo a)| Espejar (Dibujo a) | Rot45 (Dibujo a)
-    | Apilar Float Float (Dibujo a) (Dibujo a)
-    | Juntar Float Float (Dibujo a) (Dibujo a)
-    | Encimar (Dibujo a) (Dibujo a) 
-    deriving(Eq, Show)
+data Dibujo a = Basica a 
+              | Rotar (Dibujo a)
+              | Espejar (Dibujo a) 
+              | Rot45 (Dibujo a)
+              | Apilar Float Float (Dibujo a) (Dibujo a)
+              | Juntar Float Float (Dibujo a) (Dibujo a)
+              | Encimar (Dibujo a) (Dibujo a) 
+              deriving(Eq, Show)
 
 
 -- Composición n-veces de una función con sí misma.
@@ -50,7 +53,14 @@ pureDib   = Basica
 
 -- map para nuestro lenguaje.
 mapDib :: (a -> b) -> Dibujo a -> Dibujo b
-mapDib = undefined
+mapDib f (Basica a) = pureDib (f a)
+mapDib f (Rotar a) = Rotar (mapDib f a)
+mapDib f (Espejar a) = Espejar (mapDib f a)
+mapDib f (Rot45 a) = Rot45 (mapDib f a)
+mapDib f (Apilar i j a b) = Apilar i j (mapDib f a) (mapDib f b)
+mapDib f (Juntar i j a b) = Juntar i j (mapDib f a) (mapDib f b)
+mapDib f (Encimar a b) = Encimar (mapDib f a) (mapDib f b)
+
 
 -- Funcion de fold para Dibujos a
 foldDib :: (a -> b) -> (b -> b) -> (b -> b) -> (b -> b) ->
@@ -58,4 +68,10 @@ foldDib :: (a -> b) -> (b -> b) -> (b -> b) -> (b -> b) ->
        (Float -> Float -> b -> b -> b) ->
        (b -> b -> b) ->
        Dibujo a -> b 
-foldDib = undefined
+foldDib fBasica _ _ _ _ _ _ (Basica a) = fBasica a
+foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar (Rotar a) = fRotar (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar a)
+foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar (Espejar a) = fEspejar (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar a)
+foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar (Rot45 a) = fRot45 (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar a)
+foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar (Apilar i j a b) = fApilar i j (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar a) (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar b)
+foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar (Juntar i j a b) = fJuntar i j (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar a) (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar b)
+foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar (Encimar a b) = fEncimar (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar a) (foldDib fBasica fRotar fEspejar fRot45 fApilar fJuntar fEncimar b)
