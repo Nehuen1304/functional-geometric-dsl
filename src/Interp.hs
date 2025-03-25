@@ -3,7 +3,7 @@ module Interp where
 import Dibujo
 import Graphics.Gloss
 import qualified Graphics.Gloss.Data.Point.Arithmetic as V
-import Graphics.Gloss.Data.Vector
+import Graphics.Gloss.Data.Vector()
 
 -- Gloss provee el tipo Vector y Picture.
 type ImagenFlotante = Vector -> Vector -> Vector -> Picture
