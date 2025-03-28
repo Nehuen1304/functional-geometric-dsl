@@ -4,6 +4,13 @@ import Dibujo
 
 type Pred a = a -> Bool
 
+or :: Bool -> Bool -> Bool
+or a b = a || b
+
+and :: Bool -> Bool -> Bool
+and a b = a && b 
+
+
 -- Para la definiciones de la funciones de este modulo, no pueden utilizar
 -- pattern-matching, sino alto orden a traves de la funcion foldDib, mapDib
 
@@ -12,20 +19,22 @@ type Pred a = a -> Bool
 -- segundo argumento con dicha figura.
 -- Por ejemplo, `cambiar (== Triangulo) (\x -> Rotar (Basica x))` rota
 -- todos los triángulos.
+
 cambiar :: Pred a -> (a -> Dibujo a) -> Dibujo a -> Dibujo a
-cambiar = undefined
+cambiar pred f dib = mapDib (if pred then f) dib 
 
 -- Alguna básica satisface el predicado.
 anyDib :: Pred a -> Dibujo a -> Bool
-anyDib = undefined
+anyDib pred dib = foldDib pred id id id or or or dib
 
 -- Todas las básicas satisfacen el predicado.
 allDib :: Pred a -> Dibujo a -> Bool
-allDib = undefined
+allDib pred dib = foldDib pred id id id and and and dib
 
 -- Hay 4 rotaciones seguidas.
+
 esRot360 :: Pred (Dibujo a)
-esRot360 = undefined
+esRot360  = foldDib False (==Rotar(Rotar(Rotar(Rotar a)))) id id id id id 
 
 -- Hay 2 espejados seguidos.
 esFlip2 :: Pred (Dibujo a)
