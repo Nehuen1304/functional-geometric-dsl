@@ -52,7 +52,7 @@ pureDib :: a -> Dibujo a
 pureDib   = Basica  
 
 -- map para nuestro lenguaje.
-mapDib :: (a -> b) -> Dibujo a -> Dibujo b
+mapDib :: (a -> Dibujo b) -> Dibujo a -> Dibujo b
 mapDib f (Basica a) = pureDib (f a)
 mapDib f (Rotar a) = Rotar (mapDib f a)
 mapDib f (Espejar a) = Espejar (mapDib f a)

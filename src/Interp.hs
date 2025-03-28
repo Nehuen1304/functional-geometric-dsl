@@ -16,18 +16,18 @@ type Interpretacion a = a -> ImagenFlotante
 mitad :: Vector -> Vector
 mitad = (0.5 V.*)
 
-invertir :: Vector -> Vector
-invertir = ((-1) V.*)
+opuesto :: Vector -> Vector
+opuesto = ((-1) V.*)
 
 -- Interpretaciones de los constructores de Dibujo
 
 -- interpreta el operador de rotacion
 interp_rotar :: ImagenFlotante -> ImagenFlotante
-interp_rotar imagen origen ancho alto = imagen (origen V.+ ancho) alto (invertir ancho)
+interp_rotar imagen origen ancho alto = imagen (origen V.+ ancho) alto (opuesto ancho)
 
 -- interpreta el operador de espejar
 interp_espejar :: ImagenFlotante -> ImagenFlotante
-interp_espejar imagen origen ancho alto = imagen (origen V.+ ancho) (invertir ancho) alto
+interp_espejar imagen origen ancho alto = imagen (origen V.+ ancho) (opuesto ancho) alto
 
 -- interpreta el operador de rotacion 45
 interp_rotar45 :: ImagenFlotante -> ImagenFlotante
