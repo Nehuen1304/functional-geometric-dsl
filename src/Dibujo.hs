@@ -13,7 +13,7 @@ data Dibujo a = Basica a
 
 -- Composición n-veces de una función con sí misma.
 comp :: (a -> a) -> Int -> a -> a
-comp f 0 a = a 
+comp _ 0 a = a 
 comp f n a = comp f (n-1) (f a)
 -- Rotaciones de múltiplos de 90.
 r180 :: Dibujo a -> Dibujo a
@@ -53,7 +53,7 @@ pureDib   = Basica
 
 -- map para nuestro lenguaje.
 mapDib :: (a -> Dibujo b) -> Dibujo a -> Dibujo b
-mapDib f (Basica a) = pureDib (f a)
+mapDib f (Basica a) = f a
 mapDib f (Rotar a) = Rotar (mapDib f a)
 mapDib f (Espejar a) = Espejar (mapDib f a)
 mapDib f (Rot45 a) = Rot45 (mapDib f a)

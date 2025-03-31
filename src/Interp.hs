@@ -19,6 +19,11 @@ mitad = (0.5 V.*)
 opuesto :: Vector -> Vector
 opuesto = ((-1) V.*)
 
+maximo_vector :: Vector -> Vector -> Vector
+maximo_vector (x,y) (a,b) = (max x a, max y b)
+
+minimo_vector :: Vector -> Vector -> Vector
+minimo_vector (x,y) (a,b) = (min x a, min y b)
 -- Interpretaciones de los constructores de Dibujo
 
 -- interpreta el operador de rotacion
@@ -37,19 +42,37 @@ interp_rotar45 imagen origen ancho alto = imagen nOrig nAncho nAlto
     nAncho = mitad (ancho V.+ alto)
     nAlto = mitad (alto V.- alto)
 
--- interpreta el operador de apilar
-interp_apilar :: Int -> Int -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_apilar = undefined
+interp_apilar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
+interp_apilar m n img1 img2 origen ancho alto = 
+    Pictures [img1 (origen V.+ h') ancho (r V.* alto),
+              img2 origen ancho h']
+    where
+        r' = m / (n + m)
+        r = n / (n + m)
+        h' = r' V.* alto                                                
+      
+
 
 -- interpreta el operador de juntar
-interp_juntar :: Int -> Int -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_juntar = undefined
+interp_juntar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
+interp_juntar m n img1 img2 origen ancho alto =
+    Pictures [img1 origen w' alto,
+              img2 (origen V.+ w') (r' V.* ancho) alto ]
+    where
+        r' = n / (m + n)
+        r = m / (m + n)
+        w' = r V.* ancho  
+
+
 
 -- interpreta el operador de encimar
 interp_encimar :: ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_encimar = undefined
+interp_encimar img1 img2 origen ancho alto =
+  Pictures [img1 origen ancho alto, 
+            img2 origen ancho alto]
+
 
 -- interpreta cualquier expresion del tipo Dibujo a
 -- utilizar foldDib
 interp :: Interpretacion a -> Dibujo a -> ImagenFlotante
-interp = undefined
+interp inter  = foldDib inter interp_rotar interp_espejar interp_rotar45 interp_apilar interp_juntar interp_encimar 
