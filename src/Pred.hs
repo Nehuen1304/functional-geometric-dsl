@@ -41,23 +41,38 @@ allDib p = foldDib p
 
 -- Hay 4 rotaciones seguidas.
 esRot360 :: Dibujo a -> Bool
-esRot360 = foldDib (const False) 
-                 (\r -> r) 
-                 (const False) 
-                 (const False) 
-                 (\_ _ _ _ -> False) 
-                 (\_ _ _ _ -> False) 
-                 (\_ _ -> False)
+-- esRot360 = foldDib (const False) 
+                 -- (\r -> r) 
+                 -- (const False) 
+                 -- (const False) 
+                 -- (\_ _ _ _ -> False) 
+                 -- (\_ _ _ _ -> False) 
+                 -- (\_ _ -> False)
+esRot360 dib = (4 == (foldDib 
+                            (const 0)
+                            (\ c -> if c ==4 then c else c + 1) -- Rotar
+                           
+                            (\ c -> if (c == 4) then c else 0) -- Espejar
+                            (\ c -> if (c == 4) then c else 0) -- Rotar45
+                            
+                            (\ _ _ c1 c2 -> if (c1 == 4 || c2 == 4) then 4 else 0) -- Apilar
+                            (\ _ _ c1 c2 -> if (c1 == 4 || c2 == 4) then 4 else 0) -- Juntar
+                            (\ c1 c2 -> if (c1 == 4 || c2 == 4) then 4 else 0) -- Encimar
+                            dib))
 
 -- Hay 2 espejados seguidos.
 esFlip2 :: Dibujo a -> Bool
-esFlip2 = foldDib (const False) 
-                (const False) 
-                (\e -> e) 
-                (const False) 
-                (\_ _ _ _ -> False) 
-                (\_ _ _ _ -> False) 
-                (\_ _ -> False)
+esFlip2 dib = (2 == (foldDib 
+                            (const 0)
+                            (\ c -> if (c ==2) then c else 0) -- Rotar
+                           
+                            (\ c -> if (c == 2) then c else c+1) -- Espejar
+                            (\ c -> if (c == 2) then c else 0) -- Rotar45
+                            
+                            (\ _ _ c1 c2 -> if (c1 == 2 || c2 == 2) then 2 else 0) -- Apilar
+                            (\ _ _ c1 c2 -> if (c1 == 2 || c2 == 2) then 2 else 0) -- Juntar
+                            (\ c1 c2 -> if (c1 == 2 || c2 == 2) then 2 else 0) -- Encimar
+                            dib))
 
 data Superfluo = RotacionSuperflua | FlipSuperfluo
   deriving (Show, Eq)
