@@ -64,4 +64,5 @@ interp_encimar imagen1 imagen2 origen ancho alto = Pictures [imagen1 origen anch
 -- interpreta cualquier expresion del tipo Dibujo a
 -- utilizar foldDib
 interp :: Interpretacion a -> Dibujo a -> ImagenFlotante
-interp = undefined
+interp f =
+  foldDib f interp_rotar interp_espejar interp_rotar45 interp_apilar interp_juntar interp_encimar
