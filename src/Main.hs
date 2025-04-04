@@ -20,10 +20,11 @@ colorini = white
 
 -- Defino la Imagen a mostrar
 picture :: Picture
-picture = interp B.interpBas (B.escher 5 B.Triangulo) (0,0) (800,0) (0,800)
+picture = interp B.interpBas (B.escher 3 B.FishHDPLUS) (0,0) (800,0) (0,800)
 
 -- defino main para mostrar la figura, la defino como display que toma Display, un background color y un Picture
 main :: IO ()
 main = display win colorini picture
 
 
+q

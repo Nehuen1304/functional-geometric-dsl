@@ -4,8 +4,9 @@ import qualified Graphics.Gloss.Data.Point.Arithmetic as V
 import Dibujo
 import Interp
 import Basica.Comun
+import Graphics.Gloss.Data.Vector (magV)
 
-data Escher = Fish | FishHD | Triangulo | Vacio deriving (Eq, Show)
+data Escher =   Fish | FishHD | FishHDPLUS |Triangulo | Vacio deriving (Eq, Show)
 
 vacia :: Dibujo Escher
 vacia = Basica Vacio
@@ -43,6 +44,236 @@ interpBas Fish d w h =
       color white $ plot d w h [(0.051, 0.37), (-0.058, 0.291), (-0.111, 0.201)],
       color white $ plot d w h [(-0.026, 0.405), (-0.123, 0.326), (-0.176, 0.236)]
     ]
+interpBas  FishHDPLUS origen ancho alto = 
+  let
+    -- Función auxiliar para mapear coordenadas relativas
+    relToAbs :: Point -> Point
+    relToAbs (rx, ry) = origen V.+ (rx V.* ancho) V.+ (ry V.* alto)
+
+    -- Función para crear líneas entre puntos relativos
+    lineaRel :: [Point] -> Picture
+    lineaRel pts = line $ map relToAbs pts
+
+    -- Función para crear polígonos con puntos relativos
+    poligonoRel :: Color -> [Point] -> Picture
+    poligonoRel col pts = color col $ polygon $ map relToAbs pts
+
+    -- Colores para el pez
+    colorCuerpo = makeColorI 70 130 180 230    -- Azul acero con transparencia
+    colorAletas = makeColorI 65 105 225 200     -- Azul real con transparencia
+    colorAletaCaudal = makeColorI 30 144 255 220  -- Azul dodger
+
+    -- Contorno del cuerpo principal
+    puntosContorno = 
+      [ (0.05, 0.10)  -- Cola inferior
+      , (0.20, 0.05)  -- Parte inferior
+      , (0.40, 0.03)  -- Vientre
+      , (0.65, 0.08)  -- Parte inferior cerca de la cabeza
+      , (0.85, 0.20)  -- Mandíbula inferior
+      , (0.95, 0.35)  -- Punta de la boca
+      , (0.90, 0.50)  -- Parte superior de la cabeza
+      , (0.80, 0.65)  -- Inicio de la aleta dorsal
+      , (0.60, 0.70)  -- Punto alto de la aleta dorsal
+      , (0.40, 0.60)  -- Final de la aleta dorsal
+      , (0.20, 0.40)  -- Parte superior cerca de la cola
+      , (0.05, 0.25)  -- Inicio de la aleta caudal superior
+      , (0.00, 0.15)  -- Punto medio de la aleta caudal
+      , (0.05, 0.10)  -- Cierre del ciclo
+      ]
+
+    -- Cuerpo del pez (con degradado simulado usando capas)
+    cuerpo = pictures [
+        poligonoRel colorCuerpo puntosContorno,
+        color (makeColorI 255 255 255 40) $ polygon $ map relToAbs $ 
+          filter (\(_, y) -> y > 0.4) puntosContorno,
+        -- Contorno más oscuro para definir mejor la forma
+        color (makeColorI 25 25 112 200) $ lineaRel puntosContorno
+      ]
+
+    -- Aleta dorsal (más detallada)
+    aletaDorsal = pictures [
+        poligonoRel colorAletas [(0.60, 0.60), (0.70, 0.80), (0.50, 0.75), (0.40, 0.60)],
+        -- Rayos de la aleta
+        color (makeColorI 25 25 112 150) $ pictures [
+          lineaRel [(0.60, 0.60), (0.65, 0.75)],
+          lineaRel [(0.55, 0.65), (0.60, 0.78)],
+          lineaRel [(0.50, 0.68), (0.55, 0.77)],
+          lineaRel [(0.45, 0.65), (0.50, 0.75)]
+        ]
+      ]
+
+    -- Aleta pectoral
+    aletaPectoral = pictures [
+        poligonoRel colorAletas [(0.70, 0.20), (0.85, 0.10), (0.75, 0.30)],
+        -- Rayos de la aleta
+        color (makeColorI 25 25 112 150) $ pictures [
+          lineaRel [(0.70, 0.20), (0.80, 0.15)],
+          lineaRel [(0.72, 0.22), (0.82, 0.18)],
+          lineaRel [(0.74, 0.25), (0.83, 0.20)]
+        ]
+      ]
+
+    -- Aleta caudal (cola)
+    aletaCaudal = pictures [
+        poligonoRel colorAletaCaudal [(0.05, 0.25), (-0.10, 0.40), (-0.05, 0.15), (0.00, 0.15), (-0.10, -0.10), (0.05, 0.10)],
+        -- Rayos de la aleta
+        color (makeColorI 25 25 112 180) $ pictures [
+          lineaRel [(0.05, 0.25), (-0.05, 0.30)],
+          lineaRel [(0.02, 0.20), (-0.08, 0.25)],
+          lineaRel [(0.00, 0.15), (-0.08, 0.10)],
+          lineaRel [(0.02, 0.12), (-0.06, 0.00)],
+          lineaRel [(0.05, 0.10), (-0.05, -0.05)]
+        ]
+      ]
+
+    -- Aleta ventral
+    aletaVentral = pictures [
+        poligonoRel colorAletas [(0.50, 0.08), (0.65, -0.10), (0.40, 0.05)],
+        -- Rayos de la aleta
+        color (makeColorI 25 25 112 150) $ pictures [
+          lineaRel [(0.50, 0.08), (0.55, 0.00)],
+          lineaRel [(0.47, 0.07), (0.52, -0.02)],
+          lineaRel [(0.44, 0.06), (0.48, -0.03)]
+        ]
+      ]
+
+    -- Ojo mejorado con más detalles y mejor visibilidad
+    ojo = 
+      let
+        eyePos = relToAbs (0.85, 0.45)
+        eyeX = fst eyePos
+        eyeY = snd eyePos
+        eyeSize = 0.06 * magV ancho  -- Ligeramente más grande para mejor visibilidad
+      in pictures [
+        -- Órbita ocular (contorno exterior)
+        color (makeColorI 0 0 0 255) $ translate eyeX eyeY $ 
+          thickCircle (eyeSize * 1.1) (eyeSize * 0.1),
+        
+        -- Esclerótica (parte blanca del ojo)
+        color (makeColorI 240 248 255 255) $ translate eyeX eyeY $ 
+          circleSolid eyeSize,
+        
+        -- Iris (parte coloreada)
+        color (makeColorI 0 105 148 255) $ translate eyeX eyeY $ 
+          circleSolid (eyeSize * 0.7),
+        
+        -- Degradado en el iris para dar profundidad
+        color (makeColorI 0 70 120 150) $ translate eyeX eyeY $ 
+          circleSolid (eyeSize * 0.6),
+        
+        -- Pupila (parte negra central)
+        color (makeColorI 0 0 0 255) $ translate eyeX eyeY $ 
+          circleSolid (eyeSize * 0.4),
+        
+        -- Reflejo principal (punto de luz grande)
+        color (makeColorI 255 255 255 230) $ 
+          translate (eyeX + eyeSize * 0.2) (eyeY + eyeSize * 0.2) $ 
+          circleSolid (eyeSize * 0.2),
+        
+        -- Reflejo secundario (punto de luz pequeño)
+        color (makeColorI 255 255 255 200) $ 
+          translate (eyeX - eyeSize * 0.15) (eyeY - eyeSize * 0.1) $ 
+          circleSolid (eyeSize * 0.08)
+      ]
+
+    -- Branquias mejoradas
+    branquias = pictures [
+        -- Contorno de la zona branquial
+        color (makeColorI 25 25 112 200) $ 
+          lineaRel [(0.78, 0.45), (0.75, 0.25), (0.80, 0.20)],
+        
+        -- Líneas de las branquias
+        color (makeColorI 25 25 112 180) $ pictures [
+          lineaRel [(0.75, 0.40), (0.70, 0.25)],
+          lineaRel [(0.72, 0.42), (0.67, 0.27)],
+          lineaRel [(0.69, 0.44), (0.64, 0.29)]
+        ],
+        
+        -- Sombreado de la zona branquial
+        color (makeColorI 50 50 100 80) $ 
+          polygon $ map relToAbs [(0.78, 0.45), (0.75, 0.25), (0.80, 0.20), (0.82, 0.35)]
+      ]
+
+    -- Boca detallada
+    boca = pictures [
+        -- Línea de la boca
+        color (makeColorI 0 0 0 200) $ 
+          lineaRel [(0.95, 0.35), (0.85, 0.30), (0.80, 0.25)],
+        
+        -- Sombreado interior de la boca
+        color (makeColorI 150 0 0 100) $ 
+          polygon $ map relToAbs [(0.95, 0.35), (0.85, 0.30), (0.80, 0.25), (0.90, 0.32)]
+      ]
+
+    -- Detalles adicionales
+    detalles = pictures [
+        -- Línea lateral (sistema sensorial)
+        color (makeColorI 200 200 200 150) $ lineaRel [
+          (0.15, 0.25), (0.30, 0.30), (0.50, 0.35), (0.70, 0.35), (0.80, 0.30)
+        ],
+        
+        -- Escamas (simuladas con pequeños arcos)
+        color (makeColorI 255 255 255 30) $ pictures $
+          [ translate x y $ rotate (30 * sin (x + y)) $ scale (0.02 * magV ancho) (0.02 * magV alto) $ 
+            arc (-30) 150 1
+          | i <- [0..15], j <- [0..8],
+            let x = fst $ relToAbs (0.2 + i * 0.05, 0.15 + j * 0.06),
+            let y = snd $ relToAbs (0.2 + i * 0.05, 0.15 + j * 0.06),
+            -- Solo dibujar escamas dentro del cuerpo (aproximadamente)
+            x > fst (relToAbs (0.05, 0)) && 
+            x < fst (relToAbs (0.90, 0)) &&
+            y > snd (relToAbs (0, 0.05)) && 
+            y < snd (relToAbs (0, 0.65))
+          ],
+          
+        -- Patrón de manchas
+        pictures [
+          color (makeColorI 100 149 237 80) $ 
+          translate x y $ 
+          scale (s * magV ancho * 0.03) (s * magV alto * 0.03) $ 
+          circleSolid 1
+          | (rx, ry, s) <- [
+              (0.30, 0.40, 1.2), (0.45, 0.50, 1.0), 
+              (0.60, 0.45, 1.3), (0.40, 0.25, 1.1),
+              (0.55, 0.20, 0.9), (0.70, 0.40, 1.0),
+              (0.25, 0.30, 1.2), (0.50, 0.35, 1.4),
+              (0.35, 0.45, 1.1), (0.65, 0.30, 1.3),
+              (0.20, 0.20, 0.9), (0.75, 0.25, 1.0)
+            ],
+            let (x, y) = relToAbs (rx, ry)
+        ],
+        
+        -- Detalles de textura adicionales
+        pictures [
+          color (makeColorI 255 255 255 50) $ 
+          translate x y $ 
+          rotate (45 * sin (x * y)) $
+          scale (0.01 * magV ancho) (0.03 * magV alto) $ 
+          line [(-1, 0), (1, 0)]
+          | i <- [0..20], j <- [0..10],
+            let rx = 0.1 + i * 0.04,
+            let ry = 0.1 + j * 0.05,
+            let (x, y) = relToAbs (rx, ry),
+            -- Solo dentro del cuerpo
+            rx > 0.1 && rx < 0.9 && ry > 0.1 && ry < 0.6
+        ],
+        
+        -- Detalles de la cabeza
+        color (makeColorI 25 25 112 100) $ 
+        lineaRel [(0.85, 0.55), (0.90, 0.50), (0.95, 0.40)],
+        
+        -- Detalles de las aletas (venas)
+        color (makeColorI 25 25 112 120) $ pictures [
+          -- Venas en aleta dorsal
+          lineaRel [(0.55, 0.60), (0.60, 0.70)],
+          lineaRel [(0.50, 0.60), (0.55, 0.72)],
+          -- Venas en aleta caudal
+          lineaRel [(0.05, 0.20), (-0.02, 0.25)],
+          lineaRel [(0.03, 0.15), (-0.04, 0.10)]
+        ]
+      ]
+  in pictures [cuerpo, aletaDorsal, aletaPectoral, aletaCaudal, aletaVentral, ojo, branquias, detalles, boca]
+
 interpBas FishHD d w h =
   pictures
     [ plot d w h [(0.0, 1.0), (-0.0161, 0.9495), (-0.029, 0.8982), (-0.0386, 0.8461), (-0.0447, 0.7934), (-0.0471, 0.7405), (-0.0454, 0.6876), (-0.0395, 0.6349), (-0.0293, 0.583), (-0.0146, 0.5321), (0.0038, 0.4824), (0.0242, 0.4335), (0.0504, 0.3875), (0.0846, 0.3471), (0.1264, 0.3147), (0.1718, 0.2874), (0.2193, 0.264), (0.2673, 0.2418), (0.3137, 0.2161), (0.3588, 0.1884), (0.403, 0.1592), (0.446, 0.1282), (0.4879, 0.0958), (0.5289, 0.0622), (0.5688, 0.0274)],
