@@ -27,7 +27,7 @@ interp_rotar imagen origen ancho alto = imagen (origen V.+ ancho) alto (opuesto 
 
 -- interpreta el operador de espejar
 interp_espejar :: ImagenFlotante -> ImagenFlotante
-interp_espejar imagen origen ancho alto = imagen (origen V.+ ancho) (opuesto ancho) alto
+interp_espejar imagen origen ancho = imagen (origen V.+ ancho) (opuesto ancho)
 
 -- interpreta el operador de rotacion 45
 interp_rotar45 :: ImagenFlotante -> ImagenFlotante
@@ -38,16 +38,28 @@ interp_rotar45 imagen origen ancho alto = imagen nOrig nAncho nAlto
     nAlto = mitad (alto V.- alto)
 
 -- interpreta el operador de apilar
-interp_apilar :: Int -> Int -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_apilar = undefined
+interp_apilar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
+interp_apilar m n imagen1 imagen2 origen ancho alto = Pictures [imagen1 nOrigen1 ancho nAlto1, imagen2 origen ancho nAlto2]
+  where
+    ratio1 = m / (n + m)
+    ratio2 = n / (n + m)
+    nOrigen1 = origen V.+ nAlto2
+    nAlto1 = ratio1 V.* alto
+    nAlto2 = ratio2 V.* alto
 
 -- interpreta el operador de juntar
-interp_juntar :: Int -> Int -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_juntar = undefined
+interp_juntar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
+interp_juntar m n imagen1 imagen2 origen ancho alto = Pictures [imagen1 origen nAncho1 alto, imagen2 nOrigen2 nAncho2 alto]
+  where
+    ratio1 = m / (n + m)
+    ratio2 = n / (n + m)
+    nAncho1 = ratio1 V.* ancho
+    nOrigen2 = origen V.+ nAncho1
+    nAncho2 = ratio2 V.* ancho
 
 -- interpreta el operador de encimar
 interp_encimar :: ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_encimar = undefined
+interp_encimar imagen1 imagen2 origen ancho alto = Pictures [imagen1 origen ancho alto, imagen2 origen ancho alto]
 
 -- interpreta cualquier expresion del tipo Dibujo a
 -- utilizar foldDib
