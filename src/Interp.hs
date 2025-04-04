@@ -40,17 +40,16 @@ interp_rotar45 imagen origen ancho alto = imagen nOrig nAncho nAlto
   where
     nOrig = origen V.+ mitad (ancho V.+ alto)
     nAncho = mitad (ancho V.+ alto)
-    nAlto = mitad (alto V.- alto)
+    nAlto = mitad (alto V.- ancho)
 
 interp_apilar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
 interp_apilar m n img1 img2 origen ancho alto = 
     Pictures [img1 (origen V.+ h') ancho (r V.* alto),
               img2 origen ancho h']
     where
-        r' = m / (n + m)
-        r = n / (n + m)
-        h' = r' V.* alto                                                
-      
+        r' = n / (m + n)
+        r = m / (m + n)
+        h' = r' V.* alto
 
 
 -- interpreta el operador de juntar
