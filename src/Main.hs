@@ -27,4 +27,3 @@ main :: IO ()
 main = display win colorini picture
 
 
-q
