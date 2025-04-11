@@ -4,6 +4,9 @@ import Dibujo
 
 type Pred a = a -> Bool
 
+
+
+
 -- Para la definiciones de la funciones de este modulo, no pueden utilizar
 -- pattern-matching, sino alto orden a traves de la funcion foldDib, mapDib
 
@@ -12,36 +15,82 @@ type Pred a = a -> Bool
 -- segundo argumento con dicha figura.
 -- Por ejemplo, `cambiar (== Triangulo) (\x -> Rotar (Basica x))` rota
 -- todos los triángulos.
+
 cambiar :: Pred a -> (a -> Dibujo a) -> Dibujo a -> Dibujo a
-cambiar = undefined
+cambiar p f = mapDib (\x -> if p x then f x else Basica x)
 
 -- Alguna básica satisface el predicado.
 anyDib :: Pred a -> Dibujo a -> Bool
-anyDib = undefined
+anyDib p = foldDib p 
+                id 
+                id 
+                id 
+                (\_ _ x y -> x || y) 
+                (\_ _ x y -> x || y) 
+                (||)
 
 -- Todas las básicas satisfacen el predicado.
 allDib :: Pred a -> Dibujo a -> Bool
-allDib = undefined
+allDib p = foldDib p 
+                   id 
+                   id 
+                   id 
+                   (\_ _ x y -> x && y) 
+                   (\_ _ x y -> x && y) 
+                   (&&)
 
 -- Hay 4 rotaciones seguidas.
-esRot360 :: Pred (Dibujo a)
-esRot360 = undefined
+esRot360 :: Dibujo a -> Bool
+-- esRot360 = foldDib (const False) 
+                 -- (\r -> r) 
+                 -- (const False) 
+                 -- (const False) 
+                 -- (\_ _ _ _ -> False) 
+                 -- (\_ _ _ _ -> False) 
+                 -- (\_ _ -> False)
+esRot360 dib = (4 == (foldDib 
+                            (const 0)
+                            (\ c -> if c ==4 then c else c + 1) -- Rotar
+                           
+                            (\ c -> if (c == 4) then c else 0) -- Espejar
+                            (\ c -> if (c == 4) then c else 0) -- Rotar45
+                            
+                            (\ _ _ c1 c2 -> if (c1 == 4 || c2 == 4) then 4 else 0) -- Apilar
+                            (\ _ _ c1 c2 -> if (c1 == 4 || c2 == 4) then 4 else 0) -- Juntar
+                            (\ c1 c2 -> if (c1 == 4 || c2 == 4) then 4 else 0) -- Encimar
+                            dib))
 
 -- Hay 2 espejados seguidos.
-esFlip2 :: Pred (Dibujo a)
-esFlip2 = undefined
+esFlip2 :: Dibujo a -> Bool
+esFlip2 dib = (2 == (foldDib 
+                            (const 0)
+                            (\ c -> if (c ==2) then c else 0) -- Rotar
+                           
+                            (\ c -> if (c == 2) then c else c+1) -- Espejar
+                            (\ c -> if (c == 2) then c else 0) -- Rotar45
+                            
+                            (\ _ _ c1 c2 -> if (c1 == 2 || c2 == 2) then 2 else 0) -- Apilar
+                            (\ _ _ c1 c2 -> if (c1 == 2 || c2 == 2) then 2 else 0) -- Juntar
+                            (\ c1 c2 -> if (c1 == 2 || c2 == 2) then 2 else 0) -- Encimar
+                            dib))
 
 data Superfluo = RotacionSuperflua | FlipSuperfluo
+  deriving (Show, Eq)
 
----- Chequea si el dibujo tiene una rotacion superflua
+
+-- Chequea si el dibujo tiene una rotacion superflua
 errorRotacion :: Dibujo a -> [Superfluo]
-errorRotacion = undefined
+errorRotacion dib = if esRot360 dib then [RotacionSuperflua] else []
 
 -- Chequea si el dibujo tiene un flip superfluo
 errorFlip :: Dibujo a -> [Superfluo]
-errorFlip = undefined
+errorFlip dib = if esFlip2 dib then [FlipSuperfluo] else []
 
 -- Aplica todos los chequeos y acumula todos los errores, y
 -- sólo devuelve la figura si no hubo ningún error.
 checkSuperfluo :: Dibujo a -> Either [Superfluo] (Dibujo a)
-checkSuperfluo = undefined
+checkSuperfluo dib = 
+  let errores = errorRotacion dib ++ errorFlip dib
+  in if null errores 
+     then Right dib
+     else Left errores

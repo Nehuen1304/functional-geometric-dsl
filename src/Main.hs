@@ -1,68 +1,75 @@
 module Main where
+
 import Graphics.Gloss
-import Graphics.Gloss.Interface.IO.Display
-import Graphics.UI.GLUT.Begin
-import Dibujo
-import Interp
-import qualified Basica.Ejemplo as E
-import qualified Graphics.Gloss.Data.Point.Arithmetic as V
+import Graphics.Gloss.Interface.Pure.Game
 
---Funciones para rellenar el fondo de la imagen inicial
+-- Datos de cada círculo
+type Circulo = (Float, Float, Float, Velocity, Acceleration)  -- (x, y, radio, vector velocidad, vector aceleracion)
+type Velocity = (Float, Float)
+type Acceleration = (Float, Float)
 
--- comprender esta función es un buen ejericio.
-lineasH :: Vector -> Float -> Float -> [Picture]
-lineasH origen@(x, y) longitud separacion = map (lineaH . (*separacion)) [0..]
-  where lineaH h = line [(x, y + h), (x + longitud, y + h)]
+type Estado = ([Circulo], (Float, Float)) -- (circulos, mouse)
 
--- Una grilla de n líneas, comenzando en origen con una separación de sep y
--- una longitud de l (usamos composición para no aplicar este
--- argumento)
-grilla :: Int -> Vector -> Float -> Float -> Picture
-grilla n origen sep l = pictures [ls, lsV]
-  where ls = pictures $ take (n+1) $ lineasH origen sep l
-        lsV = translate 0 (l*toEnum n) (rotate 90 ls)
 
--- Configuración para interpretar un dibujo
-data Conf a = Conf {
-    basic :: a -> ImagenFlotante
-  , fig  :: Dibujo a
-  , width :: Float
-  , height :: Float
-  , r :: Picture -> Picture  -- Reposicionar figura
-  }
+-- Crear una grilla de círculos
+generaGrilla :: Int -> Int -> Float -> [Circulo]
+generaGrilla filas columnas espacio =
+  [ (x, y, 5, (0, 0), (0, 0))
+  | i <- [0..filas-1]
+  , j <- [0..columnas-1]
+  , let x = fromIntegral j * espacio - (fromIntegral columnas * espacio / 2)
+        y = fromIntegral i * espacio - (fromIntegral filas * espacio / 2)
+        
+  ]
 
-ej ancho alto = Conf {
-                basic = E.interpBas
-              , fig = E.ejemplo
-              , width = ancho
-              , height = alto
-              , r = id
-              }
+-- Dibuja un solo círculo, coloreado si es tocado
+dibujaCirculo :: Circulo -> Picture
+dibujaCirculo (x, y, r, _, _) = Translate x y $ Color black $ circleSolid r
 
-moverCentro :: Float -> Float -> Picture -> Picture
-moverCentro ancho alto p = translate (-ancho / 2) (-alto / 2) p
+-- Dibuja todo el estado
+dibuja :: Estado -> Picture
+dibuja (circulos, mousePos) = Pictures $
+  [ dibujaCirculo c | c <- circulos ] ++
+  [ Color black $ uncurry Translate mousePos $ circleSolid 5 ]
 
-ejCentro ancho alto = Conf {
-                basic = E.interpBas
-              , fig = E.ejemplo
-              , width = ancho
-              , height = alto
-              , r = moverCentro ancho alto
-              }
+-- Maneja eventos de movimiento del mouse
+manejarEvento :: Event -> Estado -> Estado
+manejarEvento (EventMotion pos) (cs, _) = (cs, pos)
+manejarEvento _ estado = estado
 
--- Dada una computación que construye una configuración, mostramos por
--- pantalla la figura de la misma de acuerdo a la interpretación para
--- las figuras básicas. Permitimos una computación para poder leer
--- archivos, tomar argumentos, etc.
-inicial :: IO (Conf E.Basica) -> IO ()
-inicial cf = cf >>= \cfg ->
-    let ancho  = (width cfg, 0)
-        alto  = (0, height cfg)
-        imagen = interp (basic cfg) (fig cfg) (0, 0) ancho alto
-    in display win white . withGrid $ imagen
-  where grillaGris = color grey $ grilla 10 (0, 0) 100 10
-        withGrid p = pictures [p, grillaGris]
-        grey = makeColorI 120 120 120 120
+actualizaAccel :: (Float, Float) -> Circulo -> Circulo
+actualizaAccel (mx, my) (x, y, r, vel, acc) =
+  let dist = sqrt ((mx - x)^2 + (my - y)^2)
+      impulso = if dist < 40 then 1 else 0
+      dx = (x - mx) / dist
+      dy = (y - my) / dist
+  in if dist < 40 then (x, y, r, vel, (fst acc + impulso * dx, snd acc + impulso * dy)) else (x, y, r, (fst vel * 0.9, snd vel * 0.9), acc)
 
-win = InWindow "Paradigmas 2025 - Lab1" (500, 500) (0, 0)
-main = inicial $ return (ej 100 100)
+actualizaVelocidad :: Circulo -> Circulo
+actualizaVelocidad (x, y, r, vel, acc) = (x, y, r, (fst vel + fst acc, snd vel + snd acc), (fst acc * 0.5, snd acc * 0.5))
+
+moverCirculo :: Circulo -> Circulo
+moverCirculo (x, y, r, vel, acc) = (x + fst vel, y + snd vel, r, vel, acc)
+
+-- Sin animación temporal
+actualiza :: Float -> Estado -> Estado
+actualiza _ (circulos, mousePos) =
+  let   circulos' = map (actualizaAccel mousePos) circulos
+        circulos2 = map actualizaVelocidad circulos'
+        circulosMovidos = map (moverCirculo) circulos2
+  in (circulosMovidos, mousePos)
+
+  
+
+-- Main
+main :: IO ()
+main = do
+  let circulos = generaGrilla 10 10 30 -- 10x10 grilla, con 30px entre círculos
+  play
+    (InWindow "particulas" (800, 800) (100, 100))
+    white
+    60
+    (circulos, (0, 0))
+    dibuja
+    manejarEvento
+    actualiza

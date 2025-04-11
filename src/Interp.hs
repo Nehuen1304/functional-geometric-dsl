@@ -19,6 +19,11 @@ mitad = (0.5 V.*)
 opuesto :: Vector -> Vector
 opuesto = ((-1) V.*)
 
+maximo_vector :: Vector -> Vector -> Vector
+maximo_vector (x,y) (a,b) = (max x a, max y b)
+
+minimo_vector :: Vector -> Vector -> Vector
+minimo_vector (x,y) (a,b) = (min x a, min y b)
 -- Interpretaciones de los constructores de Dibujo
 
 -- interpreta el operador de rotacion
@@ -35,34 +40,36 @@ interp_rotar45 imagen origen ancho alto = imagen nOrig nAncho nAlto
   where
     nOrig = origen V.+ mitad (ancho V.+ alto)
     nAncho = mitad (ancho V.+ alto)
-    nAlto = mitad (alto V.- alto)
+    nAlto = mitad (alto V.- ancho)
 
--- interpreta el operador de apilar
 interp_apilar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_apilar m n imagen1 imagen2 origen ancho alto = Pictures [imagen1 nOrigen1 ancho nAlto1, imagen2 origen ancho nAlto2]
-  where
-    ratio1 = m / (n + m)
-    ratio2 = n / (n + m)
-    nOrigen1 = origen V.+ nAlto2
-    nAlto1 = ratio1 V.* alto
-    nAlto2 = ratio2 V.* alto
+interp_apilar m n img1 img2 origen ancho alto = 
+    Pictures [img1 (origen V.+ h') ancho (r V.* alto),
+              img2 origen ancho h']
+    where
+        r' = n / (m + n)
+        r = m / (m + n)
+        h' = r' V.* alto
 
 -- interpreta el operador de juntar
 interp_juntar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_juntar m n imagen1 imagen2 origen ancho alto = Pictures [imagen1 origen nAncho1 alto, imagen2 nOrigen2 nAncho2 alto]
-  where
-    ratio1 = m / (n + m)
-    ratio2 = n / (n + m)
-    nAncho1 = ratio1 V.* ancho
-    nOrigen2 = origen V.+ nAncho1
-    nAncho2 = ratio2 V.* ancho
+interp_juntar m n img1 img2 origen ancho alto =
+    Pictures [img1 origen w' alto,
+              img2 (origen V.+ w') (r' V.* ancho) alto ]
+    where
+        r' = n / (m + n)
+        r = m / (m + n)
+        w' = r V.* ancho  
+
+
 
 -- interpreta el operador de encimar
 interp_encimar :: ImagenFlotante -> ImagenFlotante -> ImagenFlotante
-interp_encimar imagen1 imagen2 origen ancho alto = Pictures [imagen1 origen ancho alto, imagen2 origen ancho alto]
+interp_encimar img1 img2 origen ancho alto =
+  Pictures [img1 origen ancho alto, 
+            img2 origen ancho alto]
 
 -- interpreta cualquier expresion del tipo Dibujo a
 -- utilizar foldDib
 interp :: Interpretacion a -> Dibujo a -> ImagenFlotante
-interp f =
-  foldDib f interp_rotar interp_espejar interp_rotar45 interp_apilar interp_juntar interp_encimar
+interp inter  = foldDib inter interp_rotar interp_espejar interp_rotar45 interp_apilar interp_juntar interp_encimar 
