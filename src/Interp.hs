@@ -32,7 +32,7 @@ interp_rotar imagen origen ancho alto = imagen (origen V.+ ancho) alto (opuesto 
 
 -- interpreta el operador de espejar
 interp_espejar :: ImagenFlotante -> ImagenFlotante
-interp_espejar imagen origen ancho alto = imagen (origen V.+ ancho) (opuesto ancho) alto
+interp_espejar imagen origen ancho = imagen (origen V.+ ancho) (opuesto ancho)
 
 -- interpreta el operador de rotacion 45
 interp_rotar45 :: ImagenFlotante -> ImagenFlotante
@@ -51,7 +51,6 @@ interp_apilar m n img1 img2 origen ancho alto =
         r = m / (m + n)
         h' = r' V.* alto
 
-
 -- interpreta el operador de juntar
 interp_juntar :: Float -> Float -> ImagenFlotante -> ImagenFlotante -> ImagenFlotante
 interp_juntar m n img1 img2 origen ancho alto =
@@ -69,7 +68,6 @@ interp_encimar :: ImagenFlotante -> ImagenFlotante -> ImagenFlotante
 interp_encimar img1 img2 origen ancho alto =
   Pictures [img1 origen ancho alto, 
             img2 origen ancho alto]
-
 
 -- interpreta cualquier expresion del tipo Dibujo a
 -- utilizar foldDib
